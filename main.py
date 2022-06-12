@@ -22,12 +22,12 @@ def login(System):
     if usernameInput not in System.listUsernames():
         print('Username not found. Please re-enter your username')
         # or press "C" to create a new account.
-        return False
+        return (False,False)
     else:
         currencyInput = input("Please type in the currency for your account to login.\n")
         if currencyInput not in System.listSupportedCurrencies():
             print('Currency not found. Please re-enter your currency')
-            return False
+            return (False,False)
         else:
             return (usernameInput,currencyInput)
 if __name__=='__main__':
@@ -123,6 +123,6 @@ if __name__=='__main__':
                     print('Thanks for using the OSL Bank System. Have a good day.')
                     exit()
                 else:
-                    print('Invalid option. Please enter a number between 1 and 4.')
+                    print('Invalid option. Please enter a number between 1 and 7.')
             else:
                 print('Unable to find account. Please retry.')
