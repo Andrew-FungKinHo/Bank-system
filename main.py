@@ -1,5 +1,6 @@
-from OSLsystem import BankSystem
+from banksystem import BankSystem
 from bankaccount import BankAccount
+from transaction import Transaction
 
 
 menu_options = {
@@ -23,10 +24,17 @@ def login(System):
         # or press "C" to create a new account.
         return False
     else:
-        print('Login success.')
-        return usernameInput
+        currencyInput = input("Please type in the currency for your account to login.\n")
+        if currencyInput not in System.listSupportedCurrencies():
+            print('Currency not found. Please re-enter your currency')
+            return False
+        else:
+            return (usernameInput,currencyInput)
 if __name__=='__main__':
     System = BankSystem()
+    for currency in System.listSupportedCurrencies():
+        newAccount = BankAccount('OSL_FEE',currency) 
+        System.addAccount(newAccount)
 
     while(True):
         print("Hello customer. Which action would you like to take?")
@@ -51,35 +59,68 @@ if __name__=='__main__':
                     break
             # search if the account with exact username and currency already exist
             if usernameCreated in System.listUsernames():
-                if System.findAccountByUsername(usernameCreated).currency == currencySelected:
+                if System.findAccountByUsernameAndCurrency(usernameCreated,currencySelected):
                     print('Account already exist.')
+                else:
+                    newAccount = BankAccount(usernameCreated,currencySelected) 
+                    # add new account to the system
+                    System.addAccount(newAccount)
+                    print(f'Your account with the username {usernameCreated} of currency type {currencySelected} has been created successfully.')
             else:
                 newAccount = BankAccount(usernameCreated,currencySelected) 
                 # add new account to the system
                 System.addAccount(newAccount)
+                print(f'Your account with the username {usernameCreated} of currency type {currencySelected} has been created successfully.')
         else:
-            username = login(System)
-            userAccount = System.findAccountByUsername(username)
-            # Money Deposit
-            if option == 2:
-                depositAmount = float(input(f'How much {userAccount.currency} would you like to deposit to your account?\n'))
-                userAccount.deposit(depositAmount)
-            # Money Withdrawl
-            elif option == 3:
-                withdrawlAmount = float(input(f'How much {userAccount.currency} would you like to withdraw from your account?\n'))
-                userAccount.withdraw(withdrawlAmount)
-            # Money Transfer
-            elif option == 4:
-                pass
-            # List Bank Account Balance
-            elif option == 5:
-                pass
-            # Display Transaction Statement
-            elif option == 6:
-                pass
-            # Exit
-            elif option == 7:
-                print('Thanks for using the OSL Bank System. Have a good day.')
-                exit()
-            else:
-                print('Invalid option. Please enter a number between 1 and 4.')
+            username,currency = login(System)
+            userAccount = System.findAccountByUsernameAndCurrency(username,currency)
+            # check whether login is successful
+            if userAccount:
+                print('Login success.')
+
+                # Money Deposit
+                if option == 2:
+                    depositAmount = float(input(f'How much {userAccount.currency} would you like to deposit to your account?\n'))
+                    userAccount.deposit(depositAmount)
+                    print('Deposited successfully')
+
+                # Money Withdrawl
+                elif option == 3:
+                    withdrawlAmount = float(input(f'How much {userAccount.currency} would you like to withdraw from your account?\n'))
+                    if userAccount.withdraw(withdrawlAmount):
+                        # if withdrawl is successful, deposit the handling fee to the OSL_FEE account
+                        OSL_Account = System.findAccountByUsernameAndCurrency('OSL_FEE',userAccount.currency)
+                        OSL_Account.deposit(withdrawlAmount*0.01)
+
+                # Money Transfer
+                elif option == 4:
+                    transferAmount = float(input(f'How much {userAccount.currency} would you like to withdraw from your account?\n'))
+                    transferTargetUsername = input('Which account would you like to transfer your funds to?\n')
+                    if System.findAccountByUsernameAndCurrency(transferTargetUsername,userAccount.currency) is not None: 
+                        if userAccount.transfer(transferAmount):
+
+                            targetAccount = System.findAccountByUsernameAndCurrency(transferTargetUsername,userAccount.currency)
+                            targetAccount.balance += transferAmount
+                            transferTransaction = Transaction(userAccount.currency,'Transfer In',depositAmount)
+                            targetAccount.transactionHistory.append(transferTransaction)
+
+                            # if transfer is successful, deposit the handling fee to the OSL_FEE account
+                            OSL_Account = System.findAccountByUsernameAndCurrency('OSL_FEE',userAccount.currency)
+                            OSL_Account.deposit(transferAmount*0.01)
+                    else:
+                        print('Transfer Target Account not found.')
+
+                # List Bank Account Balance
+                elif option == 5:
+                    userAccount.listBankBalance()
+
+                # Display Transaction Statement
+                elif option == 6:
+                    allAccounts = System.findAllAccountsByUsername(username)
+                    statement = System.sortOverallTransactionHistory(allAccounts)
+                # Exit
+                elif option == 7:
+                    print('Thanks for using the OSL Bank System. Have a good day.')
+                    exit()
+                else:
+                    print('Invalid option. Please enter a number between 1 and 4.')
