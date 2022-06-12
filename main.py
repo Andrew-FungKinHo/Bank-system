@@ -17,6 +17,15 @@ def print_menu():
     for key in menu_options.keys():
         print(key, '--', menu_options[key][0], '--', menu_options[key][1])
 
+def promptNumber(text, numberType):
+    while True:
+        try:
+            n = numberType(input(text))
+        except ValueError:
+            print("Invalid")
+        else:
+            return n
+
 def login(System):
     usernameInput = input("Please type in the username for your account to login.\n")
     if usernameInput not in System.listUsernames():
@@ -80,13 +89,13 @@ if __name__=='__main__':
 
                 # Money Deposit
                 if option == 2:
-                    depositAmount = float(input(f'How much {userAccount.currency} would you like to deposit to your account?\n'))
+                    depositAmount = promptNumber(f'How much {userAccount.currency} would you like to deposit to your account?\n',float)
                     userAccount.deposit(depositAmount)
                     print('Deposited successfully')
 
                 # Money Withdrawl
                 elif option == 3:
-                    withdrawlAmount = float(input(f'How much {userAccount.currency} would you like to withdraw from your account?\n'))
+                    withdrawlAmount = promptNumber(f'How much {userAccount.currency} would you like to withdraw from your account?\n',float)
                     if userAccount.withdraw(withdrawlAmount):
                         # if withdrawl is successful, deposit the handling fee to the OSL_FEE account
                         OSL_Account = System.findAccountByUsernameAndCurrency('OSL_FEE',userAccount.currency)
@@ -94,7 +103,7 @@ if __name__=='__main__':
 
                 # Money Transfer
                 elif option == 4:
-                    transferAmount = float(input(f'How much {userAccount.currency} would you like to withdraw from your account?\n'))
+                    transferAmount = promptNumber(f'How much {userAccount.currency} would you like to withdraw from your account?\n',float)
                     transferTargetUsername = input('Which account would you like to transfer your funds to?\n')
                     if System.findAccountByUsernameAndCurrency(transferTargetUsername,userAccount.currency) is not None: 
                         if userAccount.transfer(transferAmount):
