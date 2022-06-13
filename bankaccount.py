@@ -1,3 +1,4 @@
+import datetime
 from transaction import Transaction
 
 
@@ -23,15 +24,32 @@ class BankAccount():
             
         else:
             # implement more than 5 withdrawals check here
-            self.balance -= withdrawlAmount
-            withdrawlTransaction = Transaction(self.currency,'Withdrawl',withdrawlAmount)
-            self.transactionHistory.append(withdrawlTransaction)
+            transactionHistory = [
+                Transaction('HKD','Withdraw',78.0),
+                Transaction('HKD','Withdraw',7),
+                Transaction('HKD','Withdraw',79.0),
+                Transaction('HKD','Withdraw',56.0),
+                Transaction('HKD','Withdraw',78.0),
+            ]
+            # check the number of transactions (withdrawl) within 5 minutes
+            transactionsWithinFiveMinutes = []
+            for transaction in self.transactionHistory:
+                if (datetime.datetime.now() - transaction.date <= datetime.timedelta(0,5*60)) and transaction.operation == 'Withdrawl':
+                    transactionsWithinFiveMinutes.append(transaction)
 
-            self.balance -= withdrawlAmount * 0.01
-            withdrawlFeeTransaction = Transaction(self.currency,'Withdrawl FEE',withdrawlAmount * 0.01)
-            self.transactionHistory.append(withdrawlFeeTransaction)
-            print('Withdrew successfully')
-            return True
+            if len(transactionsWithinFiveMinutes) > 4:
+                print('Money withdrawl was unsuccessful as you have surpassed the 5-minute threshold limit of 5 withdrawls. Please try again later.')
+                return False
+            else:
+                self.balance -= withdrawlAmount
+                withdrawlTransaction = Transaction(self.currency,'Withdrawl',withdrawlAmount)
+                self.transactionHistory.append(withdrawlTransaction)
+
+                self.balance -= withdrawlAmount * 0.01
+                withdrawlFeeTransaction = Transaction(self.currency,'Withdrawl FEE',withdrawlAmount * 0.01)
+                self.transactionHistory.append(withdrawlFeeTransaction)
+                print('Withdrew successfully')
+                return True
 
     # Money transfer: To transfer cash between two users
     def transfer(self,transferAmount):
