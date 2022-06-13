@@ -23,14 +23,6 @@ class BankAccount():
             return False
             
         else:
-            # implement more than 5 withdrawals check here
-            transactionHistory = [
-                Transaction('HKD','Withdraw',78.0),
-                Transaction('HKD','Withdraw',7),
-                Transaction('HKD','Withdraw',79.0),
-                Transaction('HKD','Withdraw',56.0),
-                Transaction('HKD','Withdraw',78.0),
-            ]
             # check the number of transactions (withdrawl) within 5 minutes
             transactionsWithinFiveMinutes = []
             for transaction in self.transactionHistory:
